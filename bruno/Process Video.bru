@@ -11,8 +11,8 @@ post {
 }
 
 body:multipart-form {
-  command: -vf "hue=s=0"
-  file: @file(/Users/lilaflo/Movies/2025-12-04 13-55-58.mp4)
+  command: -vf "minterpolate=fps=60,setpts=3.0*PTS" -an
+  file: @file(/Users/lilaflo/Downloads/LoFi Minimax Live Video (1).mp4)
 }
 
 tests {
