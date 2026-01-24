@@ -15,7 +15,8 @@ const fastify = Fastify({
 fastify.register(multipart, {
   limits: {
     fileSize: 500 * 1024 * 1024 // 500MB max file size
-  }
+  },
+  attachFieldsToBody: false
 });
 
 await fastify.register(processRoutes);

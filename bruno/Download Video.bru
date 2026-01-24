@@ -10,27 +10,27 @@ get {
   auth: none
 }
 
-params:path {
-  taskId: {{taskId}}
-}
-
-docs {
-  Download the processed video file.
-
-  Only works when the job status is COMPLETED.
-
-  This endpoint triggers a cleanup job that will delete both
-  the input and output files after a 1-hour delay.
-
-  Response is the video file (MP4 format).
+vars:pre-request {
+  taskId: 124d4644-6f34-4069-97f2-098750b087de
 }
 
 tests {
   test("Status is 200", function() {
     expect(res.getStatus()).to.equal(200);
   });
-
+  
   test("Content-Type is video", function() {
     expect(res.getHeader('content-type')).to.include('video');
   });
+}
+
+docs {
+  Download the processed video file.
+  
+  Only works when the job status is COMPLETED.
+  
+  This endpoint triggers a cleanup job that will delete both
+  the input and output files after a 1-hour delay.
+  
+  Response is the video file (MP4 format).
 }

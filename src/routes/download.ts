@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getJobStatus } from '../services/storage.js';
 import { cleanupQueue } from '../config/queues.js';
 import { JobStatus } from '../types/index.js';
-import { existsSync } from 'fs';
+import { existsSync, createReadStream } from 'fs';
 
 interface DownloadParams {
   uuid: string;
@@ -35,6 +35,8 @@ export async function downloadRoutes(fastify: FastifyInstance) {
       { delay: 3600000 } // 1 hour delay
     );
 
-    return reply.sendFile(`${uuid}_output.mp4`, '/tmp');
+    reply.header('Content-Type', 'video/mp4');
+    reply.header('Content-Disposition', `attachment; filename="${uuid}_output.mp4"`);
+    return reply.send(createReadStream(outputPath));
   });
 }
