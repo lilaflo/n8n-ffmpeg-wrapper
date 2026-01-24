@@ -5,3 +5,10 @@ dist
 .env.local
 .DS_Store
 .claude/settings.local.json
+
+# Video files
+*.mp4
+*.mpg
+*.avi
+*.mov
+*.mkv

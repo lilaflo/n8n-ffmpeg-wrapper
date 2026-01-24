@@ -17,7 +17,8 @@ services:
     depends_on:
       - redis
     volumes:
-      - /tmp:/tmp
+      - video-uploads:/tmp
 
 volumes:
   redis-data:
+  video-uploads:
