@@ -3,13 +3,14 @@ import { getJobStatus } from '../services/storage.js';
 import { cleanupQueue } from '../config/queues.js';
 import { JobStatus } from '../types/index.js';
 import { existsSync, createReadStream } from 'fs';
+import { authenticateRequest } from '../middleware/auth.js';
 
 interface DownloadParams {
   uuid: string;
 }
 
 export async function downloadRoutes(fastify: FastifyInstance) {
-  fastify.get<{ Params: DownloadParams }>('/download/:uuid', async (request, reply) => {
+  fastify.get<{ Params: DownloadParams }>('/download/:uuid', { preHandler: authenticateRequest }, async (request, reply) => {
     const { uuid } = request.params;
 
     const status = await getJobStatus(uuid);

@@ -6,10 +6,12 @@ import { videoProcessQueue } from "../config/queues.js";
 import { validateFfmpegCommand } from "../services/validation.js";
 import { setJobStatus } from "../services/storage.js";
 import { JobStatus } from "../types/index.js";
+import { authenticateRequest } from "../middleware/auth.js";
 
 export async function processRoutes(fastify: FastifyInstance) {
   fastify.post(
     "/process",
+    { preHandler: authenticateRequest },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const startTime = Date.now();
       const uuid = uuidv4();

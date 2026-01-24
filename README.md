@@ -1,87 +1,143 @@
 # Video Modifier
 
-This is an internal API endpoint for N8N which accepts a Video (binary) and a command to be executed on the binary, containing ffmpeg instructions like `-filter:v "setpts=3.0*PTS"`.
-Internally, this stores the video at /tmp/video.mpg, then applies the command (for this example: `ffmpeg -i /tmp/input.mp4 -filter:v "setpts=3.0*PTS" -an /tmp/output.mp4`).
+A REST API service for asynchronous video processing using FFmpeg. Upload a video file with an FFmpeg filter command, receive an immediate UUID response, and download the processed result when ready.
+
+**Key Features:**
+- Fast response times (~16ms) with background processing
+- Support for any valid FFmpeg filter syntax
+- Secure command validation to prevent injection attacks
+- Bearer token authentication
+- Automatic cleanup of processed files
+- Built-in job queue with Redis and BullMQ
 
 
-## Workflow
+## How It Works
 
-1. **Upload**: POST /process accepts video and ffmpeg command
-2. **Immediate Response**: UUID returned immediately (~16ms)
-3. **Background Processing**:
-   - File saved to `/tmp/<UUID>.mpg` in background
-   - BullMQ job queued for video processing
-4. **Status Check**: GET /status/:uuid returns job status
-   - `PENDING`: Job queued, file being saved
-   - `PROCESSING`: FFmpeg actively processing video
-   - `COMPLETED`: Processing done, ready for download
-   - `FAILED`: Processing failed (see error field)
-5. **Download**: GET /download/:uuid streams processed video
-6. **Cleanup**: 1 hour after download, both input and output files deleted
+1. **Upload** (POST /process)
+   - Client sends video file + FFmpeg filter command via multipart/form-data
+   - Server validates command for security
+   - UUID generated and returned immediately (~16ms response)
+   - File saves to `/tmp/<UUID>.mpg` in background pipeline
+   - BullMQ job automatically queued after file save completes
 
-## Technology
+2. **Processing** (Background Worker)
+   - Worker picks up job from Redis queue
+   - Executes: `ffmpeg -i /tmp/<UUID>.mpg [your-filter] /tmp/<UUID>_output.mp4`
+   - Updates job status in Redis: PENDING → PROCESSING → COMPLETED/FAILED
 
-- pnpm
-- TypeScript
-- Redis (for BullMQ and job status storage)
-- BullMQ
-- Docker
-- Fastify
-- FFmpeg
+3. **Status Check** (GET /status/:uuid)
+   - Returns current job status and executed FFmpeg command
+   - Statuses: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`
+   - Includes download URL when completed
 
-## Installation
+4. **Download** (GET /download/:uuid)
+   - Streams processed MP4 file to client
+   - Schedules cleanup job (1 hour delay)
 
-```bash
-pnpm install
-```
+5. **Cleanup** (Background Worker)
+   - Deletes both input and output files after 1 hour
 
-## Development
+## Technology Stack
 
-```bash
-# Start Redis (required)
-docker run -d -p 6379:6379 redis:7-alpine
+- **Runtime**: Node.js 20 with TypeScript (ES2022 modules)
+- **Package Manager**: pnpm
+- **Web Framework**: Fastify with multipart support
+- **Queue System**: BullMQ (backed by Redis)
+- **Storage**: Redis for job status and queue management
+- **Video Processing**: FFmpeg
+- **Deployment**: Docker with docker-compose
+- **Testing**: Vitest for unit and integration tests
 
-# Run in development mode
-pnpm dev
-
-# Run tests (unit tests only, no Redis required)
-pnpm test
-
-# Run all tests including integration tests (requires Redis)
-pnpm test:integration
-```
-
-## Production (Docker)
+## Quick Start
 
 ```bash
-# Start all services (recommended)
+# Clone and start all services
 docker-compose up -d
 
 # View logs
 docker-compose logs -f video-modifier
 
+# Test the API (see Example Usage section below)
+```
+
+The service will be available at `http://localhost:3000`.
+
+**What's Included:**
+- `video-modifier`: API server with FFmpeg and BullMQ workers
+- `redis`: Job queue and status storage (internal network only)
+- Persistent volumes for Redis data and video files
+
+## Development
+
+### Using Docker (Recommended)
+
+```bash
+# Start services
+docker-compose up -d
+
+# View logs in real-time
+docker-compose logs -f video-modifier
+
+# Restart after code changes
+docker-compose restart video-modifier
+
+# Rebuild after dependency changes
+docker-compose up -d --build
+
 # Stop services
 docker-compose down
 
-# Stop and remove volumes
+# Stop and remove all data
 docker-compose down -v
 ```
 
-**Docker Services:**
-- `video-modifier`: API server with FFmpeg and BullMQ workers
-- `redis`: Job queue and status storage (internal only, not exposed)
+### Local Development (Without Docker)
 
-**Docker Volumes:**
-- `redis-data`: Persistent Redis data
-- `video-uploads`: Video files stored in `/tmp` inside container
+If you prefer to run locally without Docker:
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start Redis separately
+docker run -d -p 6379:6379 redis:7-alpine
+
+# Set environment variables
+export API_TOKEN=your-token-here
+
+# Run in development mode
+pnpm dev
+```
+
+### Testing
+
+```bash
+# Run unit tests (no Redis required)
+pnpm test
+
+# Run all tests including integration tests (requires Redis)
+pnpm test:integration
+
+# Watch mode for development
+pnpm test:watch
+```
 
 ## API Endpoints
+
+All endpoints require Bearer token authentication.
+
+**Authentication:**
+- Header: `Authorization: Bearer <API_TOKEN>`
+- Token configured via `API_TOKEN` environment variable
+- Returns 401 if token is missing or invalid
 
 ### POST /process
 Upload a video file and ffmpeg command for processing.
 
 **Request:**
 - Content-Type: `multipart/form-data`
+- Headers:
+  - `Authorization: Bearer <API_TOKEN>`
 - Fields:
   - `command`: FFmpeg filter command (e.g., `-filter:v "setpts=3.0*PTS"`)
   - `file`: Video file (binary)
@@ -130,23 +186,37 @@ Download the processed video file.
 
 ## Security
 
-The API validates FFmpeg commands to prevent command injection attacks:
+The service implements multiple security layers:
 
-**Blocked patterns:**
-- Shell metacharacters: `;`, `|`, `&&`
-- Command substitution: `$()`, backticks
-- Redirects: `>`, `<`
-- Backslashes: `\`
-- Dangerous commands: `exec`, `eval`, `system`
+**Authentication:**
+- Bearer token required for all endpoints
+- Configured via `API_TOKEN` environment variable
+- Returns 401 for invalid or missing tokens
 
-**Allowed:**
-- Any valid FFmpeg filter syntax (e.g., `-vf`, `-filter:v`, `-af`)
-- All FFmpeg filters and options
+**Command Injection Prevention:**
+- Validates FFmpeg commands before execution
+- Blocks shell metacharacters: `;`, `|`, `&&`
+- Blocks command substitution: `$()`, backticks
+- Blocks file redirects: `>`, `<`
+- Blocks backslashes and dangerous keywords: `exec`, `eval`, `system`
 - Maximum command length: 1000 characters
+- Allows any valid FFmpeg filter syntax (e.g., `-vf`, `-filter:v`, `-af`)
+
+**File System Security:**
+- UUID-based file naming prevents path traversal
+- Automatic cleanup prevents disk space exhaustion
+- Docker volumes isolate file storage
+
+**Network Security:**
+- Redis port not exposed (internal network only)
+- Only port 3000 exposed for API access
 
 ## Environment Variables
 
 ```bash
+# Authentication
+API_TOKEN=your-secret-token-here  # Required for all API requests
+
 # Redis connection (docker-compose sets to "redis")
 REDIS_HOST=localhost
 REDIS_PORT=6379
@@ -176,23 +246,31 @@ See `bruno/README.md` for example ffmpeg commands.
 ## Example Usage
 
 ```bash
+# Set your API token
+export API_TOKEN="your-secret-token-here"
+
 # Upload a video for slow-motion processing
 curl -X POST http://localhost:3000/process \
+  -H "Authorization: Bearer $API_TOKEN" \
   -F "command=-filter:v \"setpts=3.0*PTS\"" \
   -F "file=@video.mp4"
 # Response: {"task":"uuid-here"}
 
 # Check status
-curl http://localhost:3000/status/uuid-here
+curl -H "Authorization: Bearer $API_TOKEN" \
+  http://localhost:3000/status/uuid-here
 # Response: {"task":"uuid-here","status":"COMPLETED","url":"/download/uuid-here"}
 
 # Download processed video (auto-detect filename from Content-Disposition header)
-curl -OJ http://localhost:3000/download/uuid-here
+curl -OJ -H "Authorization: Bearer $API_TOKEN" \
+  http://localhost:3000/download/uuid-here
 
 # Or specify output filename manually
-curl -o output.mp4 http://localhost:3000/download/uuid-here
+curl -o output.mp4 -H "Authorization: Bearer $API_TOKEN" \
+  http://localhost:3000/download/uuid-here
 
 # Using wget (respects Content-Disposition header)
-wget --content-disposition http://localhost:3000/download/uuid-here
+wget --header="Authorization: Bearer $API_TOKEN" \
+  --content-disposition http://localhost:3000/download/uuid-here
 ```
 

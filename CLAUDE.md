@@ -42,6 +42,12 @@ The service follows an asynchronous job processing pattern:
 
 ## Security Considerations
 
+- **Authentication**: Bearer token authentication on all endpoints
+  - Configured via `API_TOKEN` environment variable
+  - Implemented in `src/middleware/auth.ts`
+  - All routes use `authenticateRequest` preHandler hook
+  - Returns 401 if token missing or invalid
+  - If `API_TOKEN` not set, authentication is disabled (dev mode)
 - **Command Injection Prevention**: Implemented in `src/services/validation.ts`
   - Blocks shell metacharacters: `;`, `|`, `&&`, `$()`, backticks, redirects, backslashes
   - Blocks dangerous keywords: `exec`, `eval`, `system`
@@ -68,6 +74,8 @@ src/
 ├── config/
 │   ├── redis.ts          # Redis connection
 │   └── queues.ts         # BullMQ queue instances
+├── middleware/
+│   └── auth.ts           # Bearer token authentication
 ├── routes/
 │   ├── process.ts        # POST /process - multipart upload
 │   ├── status.ts         # GET /status/:uuid
@@ -85,11 +93,12 @@ src/
 
 ## Important Implementation Details
 
-1. **Multipart Handling**: Always iterate through `request.parts()` to handle both file and command field
-2. **Background Processing**: Use `.then()` for file saving, don't await (fast response)
-3. **Logging**: Use `console.debug()` for all logs (follows user's global instructions)
-4. **Error Handling**: Catch pipeline errors and update job status to FAILED
-5. **Testing**: Storage tests skip if `REDIS_RUNNING` env var not set
+1. **Authentication**: All routes must import and use `authenticateRequest` from `src/middleware/auth.ts` as a preHandler
+2. **Multipart Handling**: Always iterate through `request.parts()` to handle both file and command field
+3. **Background Processing**: Use `.then()` for file saving, don't await (fast response)
+4. **Logging**: Use `console.debug()` for all logs (follows user's global instructions)
+5. **Error Handling**: Catch pipeline errors and update job status to FAILED
+6. **Testing**: Storage tests skip if `REDIS_RUNNING` env var not set
 
 ## Docker Architecture
 
