@@ -1,0 +1,43 @@
+meta {
+  name: Process Video
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/process
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(/Users/lilaflo/Movies/2025-12-04 13-55-58.mp4)
+  command: -filter:v "setpts=3.0*PTS"
+}
+
+tests {
+  test("Status is 202", function() {
+    expect(res.getStatus()).to.equal(202);
+  });
+  
+  test("Response contains task ID", function() {
+    expect(res.getBody()).to.have.property('task');
+  });
+  
+  test("Save task ID to environment", function() {
+    const data = res.getBody();
+    bru.setEnvVar("taskId", data.task);
+  });
+}
+
+docs {
+  Upload a video file and ffmpeg command for processing.
+  
+  The command should be a valid ffmpeg filter:
+  - Slow motion: -filter:v "setpts=3.0*PTS"
+  - Fast motion: -filter:v "setpts=0.5*PTS"
+  - Scale: -filter:v "scale=1280:720"
+  - Crop: -filter:v "crop=640:480:0:0"
+  
+  Response will contain a task UUID to check status and download.
+}

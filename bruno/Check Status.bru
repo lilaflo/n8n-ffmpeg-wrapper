@@ -1,0 +1,45 @@
+meta {
+  name: Check Status
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/status/{{taskId}}
+  body: none
+  auth: none
+}
+
+params:path {
+  taskId: {{taskId}}
+}
+
+docs {
+  Check the processing status of a video job.
+
+  Use the task UUID from the Process Video request.
+
+  Possible status values:
+  - PENDING: Job is queued
+  - PROCESSING: FFmpeg is currently processing the video
+  - COMPLETED: Processing finished, video ready for download
+  - FAILED: Processing failed (check error field)
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has required fields", function() {
+    const data = res.getBody();
+    expect(data).to.have.property('task');
+    expect(data).to.have.property('status');
+    expect(data).to.have.property('url');
+  });
+
+  test("Task ID matches", function() {
+    const data = res.getBody();
+    expect(data.task).to.equal(bru.getEnvVar("taskId"));
+  });
+}

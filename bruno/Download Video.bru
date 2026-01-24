@@ -1,0 +1,36 @@
+meta {
+  name: Download Video
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/download/{{taskId}}
+  body: none
+  auth: none
+}
+
+params:path {
+  taskId: {{taskId}}
+}
+
+docs {
+  Download the processed video file.
+
+  Only works when the job status is COMPLETED.
+
+  This endpoint triggers a cleanup job that will delete both
+  the input and output files after a 1-hour delay.
+
+  Response is the video file (MP4 format).
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Content-Type is video", function() {
+    expect(res.getHeader('content-type')).to.include('video');
+  });
+}

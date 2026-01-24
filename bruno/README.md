@@ -1,0 +1,59 @@
+# Bruno API Collection
+
+This folder contains Bruno HTTP client requests for testing the Video Modifier API.
+
+## Setup
+
+1. Install [Bruno](https://www.usebruno.com/)
+2. Open Bruno and select "Open Collection"
+3. Navigate to this `bruno` folder
+
+## Environment
+
+The collection uses the **Local** environment with:
+- `baseUrl`: http://localhost:3000
+- `taskId`: Auto-populated after running "Process Video" request
+
+## Workflow
+
+Run the requests in order:
+
+1. **Process Video** - Upload a video file with an ffmpeg command
+   - You'll need to provide a sample video file
+   - The response's task UUID is automatically saved to `taskId`
+
+2. **Check Status** - Monitor the processing status
+   - Uses the `taskId` from the previous request
+   - Run multiple times until status is COMPLETED
+
+3. **Download Video** - Download the processed video
+   - Only works when status is COMPLETED
+   - Returns the processed video file
+
+## Example FFmpeg Commands
+
+```
+# Slow motion (3x slower)
+-filter:v "setpts=3.0*PTS"
+
+# Fast motion (2x faster)
+-filter:v "setpts=0.5*PTS"
+
+# Scale to 720p
+-filter:v "scale=1280:720"
+
+# Crop to 640x480
+-filter:v "crop=640:480:0:0"
+
+# Rotate 90 degrees
+-filter:v "rotate=90*PI/180"
+
+# Horizontal flip
+-filter:v "hflip"
+```
+
+## Notes
+
+- Ensure Redis is running: `docker ps | grep redis`
+- Ensure the API server is running: `pnpm dev`
+- For the "Process Video" request, you'll need to update the file path to point to an actual video file
