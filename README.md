@@ -130,13 +130,19 @@ Download the processed video file.
 
 ## Security
 
-The API validates all FFmpeg commands to prevent command injection attacks. Only whitelisted filters are allowed:
-- setpts, fps, scale, crop, rotate, hflip, vflip
-- fade, trim, volume, equalizer
-- brightness, contrast, saturation, hue
-- drawtext, overlay
+The API validates FFmpeg commands to prevent command injection attacks:
 
-Commands containing shell metacharacters (`;`, `|`, `&&`, etc.) are rejected.
+**Blocked patterns:**
+- Shell metacharacters: `;`, `|`, `&&`
+- Command substitution: `$()`, backticks
+- Redirects: `>`, `<`
+- Backslashes: `\`
+- Dangerous commands: `exec`, `eval`, `system`
+
+**Allowed:**
+- Any valid FFmpeg filter syntax (e.g., `-vf`, `-filter:v`, `-af`)
+- All FFmpeg filters and options
+- Maximum command length: 1000 characters
 
 ## Environment Variables
 

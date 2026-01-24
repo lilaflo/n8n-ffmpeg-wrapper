@@ -43,10 +43,10 @@ The service follows an asynchronous job processing pattern:
 ## Security Considerations
 
 - **Command Injection Prevention**: Implemented in `src/services/validation.ts`
-  - Whitelisted ffmpeg filters only (setpts, scale, crop, rotate, etc.)
-  - Blocks shell metacharacters: `;`, `|`, `&&`, `$()`, backticks, redirects
+  - Blocks shell metacharacters: `;`, `|`, `&&`, `$()`, backticks, redirects, backslashes
+  - Blocks dangerous keywords: `exec`, `eval`, `system`
   - Max command length: 1000 characters
-  - Requires `-filter:v` format with quoted filter string
+  - Allows any valid FFmpeg syntax (no filter whitelist)
 - **File System**: UUID-based naming prevents collisions
 - **Docker**: Redis port not exposed (internal network only)
 - **Cleanup**: Automatic cleanup after 1 hour prevents volume bloat

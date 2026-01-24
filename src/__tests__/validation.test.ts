@@ -37,16 +37,14 @@ describe('validateFfmpegCommand', () => {
     expect(result.error).toContain('prohibited pattern');
   });
 
-  it('should reject command without filter:v', () => {
+  it('should accept any valid ffmpeg command', () => {
     const result = validateFfmpegCommand('-an -c:v copy');
-    expect(result.valid).toBe(false);
-    expect(result.error).toContain('must contain -filter:v');
+    expect(result.valid).toBe(true);
   });
 
-  it('should reject command with unallowed filter', () => {
-    const result = validateFfmpegCommand('-filter:v "movie=/etc/passwd"');
-    expect(result.valid).toBe(false);
-    expect(result.error).toContain('allowed filters');
+  it('should accept vf shorthand', () => {
+    const result = validateFfmpegCommand('-vf "hue=s=0"');
+    expect(result.valid).toBe(true);
   });
 
   it('should reject empty command', () => {

@@ -40,16 +40,22 @@ Run the requests in order:
 -filter:v "setpts=0.5*PTS"
 
 # Scale to 720p
--filter:v "scale=1280:720"
+-vf "scale=1280:720"
 
 # Crop to 640x480
--filter:v "crop=640:480:0:0"
+-vf "crop=640:480:0:0"
 
 # Rotate 90 degrees
--filter:v "rotate=90*PI/180"
+-vf "rotate=90*PI/180"
 
 # Horizontal flip
--filter:v "hflip"
+-vf "hflip"
+
+# Grayscale/desaturate
+-vf "hue=s=0"
+
+# Complex filter chain
+-vf "scale=1280:720,hue=s=0,fade=in:0:30"
 ```
 
 ## Downloading Videos
