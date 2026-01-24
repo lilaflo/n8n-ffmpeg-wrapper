@@ -106,9 +106,17 @@ Check the processing status of a job.
   "task": "uuid-here",
   "status": "PENDING|PROCESSING|COMPLETED|FAILED",
   "url": "/download/uuid-here or null",
+  "cmd": "ffmpeg -i /tmp/<uuid>.mpg -filter:v \"setpts=3.0*PTS\" /tmp/<uuid>_output.mp4",
   "error": "error message if failed"
 }
 ```
+
+**Fields:**
+- `task`: Job UUID
+- `status`: Current processing status
+- `url`: Download URL (only present when COMPLETED)
+- `cmd`: Full ffmpeg command being executed
+- `error`: Error message (only present when FAILED)
 
 ### GET /download/:uuid
 Download the processed video file.

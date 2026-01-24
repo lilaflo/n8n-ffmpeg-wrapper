@@ -21,5 +21,6 @@ export interface StatusResponse {
   task: string;
   status: JobStatus;
   url: string | null;
+  cmd?: string;
   error?: string;
 }

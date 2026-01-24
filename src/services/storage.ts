@@ -8,12 +8,14 @@ export async function setJobStatus(
   uuid: string,
   status: JobStatus,
   url: string | null = null,
-  error?: string
+  error?: string,
+  cmd?: string
 ): Promise<void> {
   const data: StatusResponse = {
     task: uuid,
     status,
     url,
+    ...(cmd && { cmd }),
     ...(error && { error })
   };
 
@@ -31,4 +33,26 @@ export async function getJobStatus(uuid: string): Promise<StatusResponse | null>
   }
 
   return JSON.parse(data) as StatusResponse;
+}
+
+export async function updateJobStatus(
+  uuid: string,
+  updates: Partial<Omit<StatusResponse, 'task'>>
+): Promise<void> {
+  const existing = await getJobStatus(uuid);
+
+  const data: StatusResponse = {
+    task: uuid,
+    status: updates.status ?? existing?.status ?? JobStatus.PENDING,
+    url: updates.url !== undefined ? updates.url : (existing?.url ?? null),
+    ...(updates.cmd && { cmd: updates.cmd }),
+    ...(existing?.cmd && !updates.cmd && { cmd: existing.cmd }),
+    ...(updates.error && { error: updates.error })
+  };
+
+  await redisConnection.setex(
+    `${STATUS_PREFIX}${uuid}`,
+    STATUS_TTL,
+    JSON.stringify(data)
+  );
 }

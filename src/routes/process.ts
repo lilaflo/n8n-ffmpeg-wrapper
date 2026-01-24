@@ -71,7 +71,8 @@ export async function processRoutes(fastify: FastifyInstance) {
           return reply.code(400).send({ error: validation.error });
         }
 
-        await setJobStatus(uuid, JobStatus.PENDING);
+        const ffmpegCmd = `ffmpeg -i ${inputPath} ${command} ${outputPath}`;
+        await setJobStatus(uuid, JobStatus.PENDING, null, undefined, ffmpegCmd);
 
         const elapsed = Date.now() - startTime;
         console.debug(`[${uuid}] Request completed in ${elapsed}ms`);

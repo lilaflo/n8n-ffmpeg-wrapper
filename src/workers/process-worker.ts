@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import redisConnection from '../config/redis.js';
 import { ProcessJobData, JobStatus } from '../types/index.js';
-import { setJobStatus } from '../services/storage.js';
+import { updateJobStatus } from '../services/storage.js';
 
 const execAsync = promisify(exec);
 
@@ -15,7 +15,7 @@ export const processWorker = new Worker<ProcessJobData>(
     console.debug(`Processing video job ${uuid}`);
 
     try {
-      await setJobStatus(uuid, JobStatus.PROCESSING);
+      await updateJobStatus(uuid, { status: JobStatus.PROCESSING });
 
       const ffmpegCommand = `ffmpeg -i ${inputPath} ${command} ${outputPath}`;
       console.debug(`Executing: ${ffmpegCommand}`);
@@ -30,14 +30,14 @@ export const processWorker = new Worker<ProcessJobData>(
       }
 
       const downloadUrl = `/download/${uuid}`;
-      await setJobStatus(uuid, JobStatus.COMPLETED, downloadUrl);
+      await updateJobStatus(uuid, { status: JobStatus.COMPLETED, url: downloadUrl });
 
       console.debug(`Video processing completed for ${uuid}`);
     } catch (error) {
       console.debug(`Error processing video ${uuid}:`, error);
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await setJobStatus(uuid, JobStatus.FAILED, null, errorMessage);
+      await updateJobStatus(uuid, { status: JobStatus.FAILED, url: null, error: errorMessage });
 
       throw error;
     }
