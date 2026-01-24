@@ -52,8 +52,18 @@ Run the requests in order:
 -filter:v "hflip"
 ```
 
+## Downloading Videos
+
+Bruno will display binary data in the response tab. To actually download the file:
+
+1. **In Bruno**: Click the download icon (↓) in the response header area
+2. **Using curl**: `curl -OJ http://localhost:3000/download/<taskId>`
+3. **Using wget**: `wget --content-disposition http://localhost:3000/download/<taskId>`
+
+The `-J` flag for curl and `--content-disposition` for wget tell them to use the filename from the `Content-Disposition` header (`<uuid>_output.mp4`).
+
 ## Notes
 
 - Ensure Redis is running: `docker ps | grep redis`
-- Ensure the API server is running: `pnpm dev`
+- Ensure the API server is running: `pnpm dev` or `docker-compose up -d`
 - For the "Process Video" request, you'll need to update the file path to point to an actual video file

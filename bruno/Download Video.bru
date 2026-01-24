@@ -26,11 +26,17 @@ tests {
 
 docs {
   Download the processed video file.
-  
+
   Only works when the job status is COMPLETED.
-  
+
   This endpoint triggers a cleanup job that will delete both
   the input and output files after a 1-hour delay.
-  
+
   Response is the video file (MP4 format).
+
+  Note: Bruno will display binary data. To download the file properly, use:
+  - curl -OJ http://localhost:3000/download/{{taskId}}
+  - wget --content-disposition http://localhost:3000/download/{{taskId}}
+
+  Or click the download icon (↓) in Bruno's response header.
 }

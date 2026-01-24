@@ -172,7 +172,13 @@ curl -X POST http://localhost:3000/process \
 curl http://localhost:3000/status/uuid-here
 # Response: {"task":"uuid-here","status":"COMPLETED","url":"/download/uuid-here"}
 
-# Download processed video
+# Download processed video (auto-detect filename from Content-Disposition header)
+curl -OJ http://localhost:3000/download/uuid-here
+
+# Or specify output filename manually
 curl -o output.mp4 http://localhost:3000/download/uuid-here
+
+# Using wget (respects Content-Disposition header)
+wget --content-disposition http://localhost:3000/download/uuid-here
 ```
 
