@@ -19,7 +19,7 @@
   "dependencies": {
     "@fastify/multipart": "^8.3.0",
     "bullmq": "^5.25.2",
-    "fastify": "^4.28.1",
+    "fastify": "^5.7.3",
     "ioredis": "^5.4.1",
     "uuid": "^11.0.3"
   },
