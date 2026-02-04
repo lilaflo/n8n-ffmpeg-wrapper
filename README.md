@@ -131,6 +131,31 @@ All endpoints require Bearer token authentication.
 - Token configured via `API_TOKEN` environment variable
 - Returns 401 if token is missing or invalid
 
+### POST /merge
+Merge an audio file with a video file, looping the video until the audio ends.
+
+**Request:**
+- Content-Type: `multipart/form-data`
+- Headers:
+  - `Authorization: Bearer <API_TOKEN>`
+- Fields:
+  - `video`: Video file (MP4 format)
+  - `audio`: Audio file (MP3 format)
+
+**Response (202):**
+```json
+{
+  "task": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+**Processing Command:** `ffmpeg -stream_loop -1 -i video.mp4 -i audio.mp3 -shortest -map 0:v:0 -map 1:a:0 -c:v libx264 -c:a aac output.mp4`
+
+**Notes:**
+- Video loops continuously until audio track finishes
+- Outputs MP4 with H.264 video and AAC audio
+- Fast response time (~16ms) with background processing
+
 ### POST /process
 Upload a video file and ffmpeg command for processing.
 
@@ -183,6 +208,62 @@ Download the processed video file.
 - Body: Video file stream
 
 **Note:** Triggers cleanup job to delete both input and output files after 1 hour.
+
+## Example Usage
+
+### Merge Audio and Video Files
+
+```bash
+# Set your API token
+export API_TOKEN="your-secret-token-here"
+
+# Merge audio with looping video
+curl -X POST http://localhost:3000/merge \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -F "video=@video.mp4" \
+  -F "audio=@audio.mp3"
+# Response: {"task":"uuid-here"}
+
+# Check status
+curl -H "Authorization: Bearer $API_TOKEN" \
+  http://localhost:3000/status/uuid-here
+# Response: {"task":"uuid-here","status":"COMPLETED","url":"/download/uuid-here"}
+
+# Download merged video (auto-detect filename from Content-Disposition header)
+curl -OJ -H "Authorization: Bearer $API_TOKEN" \
+  http://localhost:3000/download/uuid-here
+```
+
+### Process Video with Filters
+
+```bash
+# Set your API token
+export API_TOKEN="your-secret-token-here"
+
+# Upload a video for slow-motion processing
+curl -X POST http://localhost:3000/process \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -F "command=-filter:v \"setpts=3.0*PTS\"" \
+  -F "file=@video.mp4"
+# Response: {"task":"uuid-here"}
+
+# Check status
+curl -H "Authorization: Bearer $API_TOKEN" \
+  http://localhost:3000/status/uuid-here
+# Response: {"task":"uuid-here","status":"COMPLETED","url":"/download/uuid-here"}
+
+# Download processed video (auto-detect filename from Content-Disposition header)
+curl -OJ -H "Authorization: Bearer $API_TOKEN" \
+  http://localhost:3000/download/uuid-here
+
+# Or specify output filename manually
+curl -o output.mp4 -H "Authorization: Bearer $API_TOKEN" \
+  http://localhost:3000/download/uuid-here
+
+# Using wget (respects Content-Disposition header)
+wget --header="Authorization: Bearer $API_TOKEN" \
+  --content-disposition http://localhost:3000/download/uuid-here
+```
 
 ## Security
 
@@ -243,34 +324,5 @@ A complete API collection is available in the `bruno/` folder:
 
 See `bruno/README.md` for example ffmpeg commands.
 
-## Example Usage
 
-```bash
-# Set your API token
-export API_TOKEN="your-secret-token-here"
-
-# Upload a video for slow-motion processing
-curl -X POST http://localhost:3000/process \
-  -H "Authorization: Bearer $API_TOKEN" \
-  -F "command=-filter:v \"setpts=3.0*PTS\"" \
-  -F "file=@video.mp4"
-# Response: {"task":"uuid-here"}
-
-# Check status
-curl -H "Authorization: Bearer $API_TOKEN" \
-  http://localhost:3000/status/uuid-here
-# Response: {"task":"uuid-here","status":"COMPLETED","url":"/download/uuid-here"}
-
-# Download processed video (auto-detect filename from Content-Disposition header)
-curl -OJ -H "Authorization: Bearer $API_TOKEN" \
-  http://localhost:3000/download/uuid-here
-
-# Or specify output filename manually
-curl -o output.mp4 -H "Authorization: Bearer $API_TOKEN" \
-  http://localhost:3000/download/uuid-here
-
-# Using wget (respects Content-Disposition header)
-wget --header="Authorization: Bearer $API_TOKEN" \
-  --content-disposition http://localhost:3000/download/uuid-here
-```
 

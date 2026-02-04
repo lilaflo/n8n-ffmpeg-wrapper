@@ -17,6 +17,13 @@ export interface CleanupJobData {
   outputPath: string;
 }
 
+export interface MergeJobData {
+  uuid: string;
+  videoPath: string;
+  audioPath: string;
+  outputPath: string;
+}
+
 export interface StatusResponse {
   task: string;
   status: JobStatus;

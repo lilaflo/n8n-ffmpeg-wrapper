@@ -1,9 +1,11 @@
 import Fastify from 'fastify';
 import multipart from '@fastify/multipart';
 import { processRoutes } from './routes/process.js';
+import { mergeRoutes } from './routes/merge.js';
 import { statusRoutes } from './routes/status.js';
 import { downloadRoutes } from './routes/download.js';
 import './workers/process-worker.js';
+import './workers/merge-worker.js';
 import './workers/cleanup-worker.js';
 
 const fastify = Fastify({
@@ -20,6 +22,7 @@ fastify.register(multipart, {
 });
 
 await fastify.register(processRoutes);
+await fastify.register(mergeRoutes);
 await fastify.register(statusRoutes);
 await fastify.register(downloadRoutes);
 
