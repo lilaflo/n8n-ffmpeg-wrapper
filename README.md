@@ -178,6 +178,19 @@ Upload a video file and ffmpeg command for processing.
 
 **Performance:** ~16ms response time (file saves in background)
 
+### GET /version
+Get the current API version from package.json.
+
+**Response:**
+```json
+{
+  "version": "1.0.0"
+}
+```
+
+**Fields:**
+- `version`: The version string from package.json
+
 ### GET /status/:uuid
 Check the processing status of a job.
 

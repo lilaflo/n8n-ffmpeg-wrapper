@@ -4,6 +4,7 @@ import { processRoutes } from './routes/process.js';
 import { mergeRoutes } from './routes/merge.js';
 import { statusRoutes } from './routes/status.js';
 import { downloadRoutes } from './routes/download.js';
+import { versionRoutes } from './routes/version.js';
 import './workers/process-worker.js';
 import './workers/merge-worker.js';
 import './workers/cleanup-worker.js';
@@ -25,6 +26,7 @@ await fastify.register(processRoutes);
 await fastify.register(mergeRoutes);
 await fastify.register(statusRoutes);
 await fastify.register(downloadRoutes);
+await fastify.register(versionRoutes);
 
 const start = async () => {
   try {

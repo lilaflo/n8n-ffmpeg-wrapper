@@ -1,0 +1,16 @@
+meta {
+  name: Get Version
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/version
+  headers: {
+    Authorization: Bearer {{apiToken}}
+  }
+}
+
+script:pre-response {
+  bru.setStatus('success');
+}

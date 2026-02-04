@@ -1,6 +1,6 @@
 {
   "name": "video-modifier",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Internal API endpoint for N8N to process videos with ffmpeg commands",
   "main": "dist/index.js",
   "type": "module",
