@@ -178,6 +178,31 @@ Upload a video file and ffmpeg command for processing.
 
 **Performance:** ~16ms response time (file saves in background)
 
+### POST /merge
+Merge an audio file with a video file, looping the video until the audio ends.
+
+**Request:**
+- Content-Type: `multipart/form-data`
+- Headers:
+  - `Authorization: Bearer <API_TOKEN>`
+- Fields:
+  - `video`: Video file (MP4 format)
+  - `audio`: Audio file (MP3 format)
+
+**Response (202):**
+```json
+{
+  "task": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+**Processing Command:** `ffmpeg -stream_loop -1 -i video.mp4 -i audio.mp3 -shortest -map 0:v:0 -map 1:a:0 -c:v libx264 -c:a aac output.mp4`
+
+**Notes:**
+- Video loops continuously until audio track finishes
+- Outputs MP4 with H.264 video and AAC audio
+- Fast response time (~16ms) with background processing
+
 ### GET /version
 Get the current API version from package.json.
 
