@@ -124,12 +124,13 @@ pnpm test:watch
 
 ## API Endpoints
 
-All endpoints require Bearer token authentication.
+All endpoints require Bearer token authentication except for GET /version.
 
 **Authentication:**
 - Header: `Authorization: Bearer <API_TOKEN>`
 - Token configured via `API_TOKEN` environment variable
 - Returns 401 if token is missing or invalid
+- GET /version does not require authentication
 
 ### POST /merge
 Merge an audio file with a video file, looping the video until the audio ends.
@@ -204,17 +205,23 @@ Merge an audio file with a video file, looping the video until the audio ends.
 - Fast response time (~16ms) with background processing
 
 ### GET /version
-Get the current API version from package.json.
+Get the current API version from package.json. This endpoint does not require authentication.
 
 **Response:**
 ```json
 {
-  "version": "1.0.0"
+  "version": "1.1.0"
 }
 ```
 
 **Fields:**
 - `version`: The version string from package.json
+
+**Example:**
+```bash
+curl http://localhost:3000/version
+# {"version": "1.1.0"}
+```
 
 ### GET /status/:uuid
 Check the processing status of a job.

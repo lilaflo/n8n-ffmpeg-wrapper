@@ -1,5 +1,4 @@
 import { FastifyInstance } from 'fastify';
-import { authenticateRequest } from '../middleware/auth.js';
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -9,7 +8,6 @@ const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'
 
 export const versionRoutes = async (fastify: FastifyInstance) => {
   fastify.get('/version', {
-    preHandler: authenticateRequest,
     schema: {
       response: {
         200: {
