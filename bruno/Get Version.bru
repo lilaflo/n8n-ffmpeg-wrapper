@@ -1,16 +1,11 @@
 meta {
   name: Get Version
   type: http
-  seq: 6
+  seq: 11
 }
 
 get {
   url: {{baseUrl}}/version
-  headers: {
-    Authorization: Bearer {{apiToken}}
-  }
-}
-
-script:pre-response {
-  bru.setStatus('success');
+  body: none
+  auth: none
 }
