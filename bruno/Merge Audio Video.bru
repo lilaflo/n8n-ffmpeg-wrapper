@@ -1,0 +1,44 @@
+meta {
+  name: Merge Audio Video
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/merge
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  video: @file(/Users/lilaflo/Downloads/example-video.mp4)
+  audio: @file(/Users/lilaflo/Downloads/example-audio.mp3)
+}
+
+tests {
+  test("Status is 202", function() {
+    expect(res.getStatus()).to.equal(202);
+  });
+  
+  test("Response contains task ID", function() {
+    expect(res.getBody()).to.have.property('task');
+  });
+  
+  test("Save task ID to environment", function() {
+    const data = res.getBody();
+    bru.setEnvVar("taskId", data.task);
+  });
+}
+
+docs {
+  Merge an audio file (MP3) with a video file (MP4), looping the video until the audio ends.
+  
+  This is perfect for:
+  - Adding background music to short video loops
+  - Extending video content to match audio duration
+  - Creating music videos from static video clips
+  
+  The video will loop continuously until the audio track finishes, then output as MP4 with H.264 video and AAC audio.
+  
+  Response will contain a task UUID to check status and download the merged file.
+}

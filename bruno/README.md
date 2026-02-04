@@ -16,7 +16,7 @@ The collection uses the **Local** environment with:
 
 ## Workflow
 
-Run the requests in order:
+### Option 1: Process Video with Filters
 
 1. **Process Video** - Upload a video file with an ffmpeg command
    - You'll need to provide a sample video file
@@ -29,6 +29,21 @@ Run the requests in order:
 3. **Download Video** - Download the processed video
    - Only works when status is COMPLETED
    - Returns the processed video file
+
+### Option 2: Merge Audio with Video
+
+1. **Merge Audio Video** - Upload separate audio and video files
+   - Provide an MP4 video file and MP3 audio file
+   - Video will loop until audio ends
+   - The response's task UUID is automatically saved to `taskId`
+
+2. **Check Status** - Monitor the processing status
+   - Uses the `taskId` from the previous request
+   - Run multiple times until status is COMPLETED
+
+3. **Download Video** - Download the merged video
+   - Only works when status is COMPLETED
+   - Returns the merged video file with audio
 
 ## Example FFmpeg Commands
 
@@ -73,3 +88,5 @@ The `-J` flag for curl and `--content-disposition` for wget tell them to use the
 - Ensure Redis is running: `docker ps | grep redis`
 - Ensure the API server is running: `pnpm dev` or `docker-compose up -d`
 - For the "Process Video" request, you'll need to update the file path to point to an actual video file
+- For the "Merge Audio Video" request, you'll need to update both file paths to point to actual audio and video files
+- The merge endpoint is perfect for creating music videos or adding background audio to looping video content
